@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"fmt"
@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"strings"
 	"time"
-
-	"github.com/gin-gonic/gin"
 )
 
 // RandomTextGenerator represents a context-free grammar based text generator
@@ -74,8 +72,6 @@ func (rtg *RandomTextGenerator) readGrammarRules(lines []string) {
 			}
 		}
 	}
-	
-	fmt.Printf("Loaded grammar rules: %v\n", rtg.GrammarRules)
 }
 
 // expandSymbol recursively expands a grammar symbol (terminal or non-terminal)
@@ -126,41 +122,34 @@ func (rtg *RandomTextGenerator) Run() string {
 	return strings.TrimSpace(result)
 }
 
-// generateHandler is an HTTP handler function that generates random text
-// using grammar rules fetched from a GitHub repository
-//
-// Parameters:
-//   - c: gin.Context pointer containing the HTTP request context
-func generateHandler(c *gin.Context) {
+func Handler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	githubRawURL := "https://raw.githubusercontent.com/HarryZ10/api.resumes.guide/main/static/resume.g"
 	resp, err := http.Get(githubRawURL)
 	if err != nil || resp.StatusCode != 200 {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to fetch file", "status": "Error"})
+		http.Error(w, "Failed to fetch file", http.StatusInternalServerError)
 		return
 	}
 	defer resp.Body.Close()
-	
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to read file contents", "status": "Error"})
+		http.Error(w, "Failed to read file contents", http.StatusInternalServerError)
 		return
 	}
-	
+
 	rtg := NewRandomTextGenerator(string(body))
 	generatedText := rtg.Run()
-	
+
 	if strings.HasPrefix(generatedText, "Error:") {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": generatedText, "status": "Error"})
+		http.Error(w, generatedText, http.StatusInternalServerError)
 		return
 	}
-	
-	c.JSON(http.StatusOK, gin.H{"message": generatedText, "status": "OK"})
-}
 
-// main initializes and starts the HTTP server with the random text
-// generation endpoint
-func main() {
-	router := gin.Default()
-	router.GET("/", generateHandler)
-	router.Run(":4000")
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprintf(w, `{"message": %q, "status": "OK"}`, generatedText)
 }
