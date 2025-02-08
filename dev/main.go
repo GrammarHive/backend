@@ -5,12 +5,12 @@ import (
 	"log"
 	"net/http"
 
-	"go.resumes.guide/api"
+	handler "go.resumes.guide/api"
 )
 
 func main() {
 	// Mount the serverless function handler
-	http.HandleFunc("/api/generate", api.Handler)
+	http.HandleFunc("/api/generate", handler.Handler)
 	
 	// Run the server
 	port := ":4000"

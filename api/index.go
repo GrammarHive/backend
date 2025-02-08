@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"fmt"
@@ -123,33 +123,45 @@ func (rtg *RandomTextGenerator) Run() string {
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
+    // Enable CORS
+    w.Header().Set("Access-Control-Allow-Origin", "*")
+    w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+    w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
-	githubRawURL := "https://raw.githubusercontent.com/HarryZ10/api.resumes.guide/main/static/resume.g"
-	resp, err := http.Get(githubRawURL)
-	if err != nil || resp.StatusCode != 200 {
-		http.Error(w, "Failed to fetch file", http.StatusInternalServerError)
-		return
-	}
-	defer resp.Body.Close()
+    // Handle OPTIONS request
+    if r.Method == "OPTIONS" {
+        w.WriteHeader(http.StatusOK)
+        return
+    }
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		http.Error(w, "Failed to read file contents", http.StatusInternalServerError)
-		return
-	}
+    // Only allow GET requests
+    if r.Method != http.MethodGet {
+        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+        return
+    }
 
-	rtg := NewRandomTextGenerator(string(body))
-	generatedText := rtg.Run()
+    githubRawURL := "https://raw.githubusercontent.com/HarryZ10/api.resumes.guide/main/static/resume.g"
+    resp, err := http.Get(githubRawURL)
+    if err != nil || resp.StatusCode != 200 {
+        http.Error(w, "Failed to fetch file", http.StatusInternalServerError)
+        return
+    }
+    defer resp.Body.Close()
 
-	if strings.HasPrefix(generatedText, "Error:") {
-		http.Error(w, generatedText, http.StatusInternalServerError)
-		return
-	}
+    body, err := io.ReadAll(resp.Body)
+    if err != nil {
+        http.Error(w, "Failed to read file contents", http.StatusInternalServerError)
+        return
+    }
 
-	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprintf(w, `{"message": %q, "status": "OK"}`, generatedText)
+    rtg := NewRandomTextGenerator(string(body))
+    generatedText := rtg.Run()
+
+    if strings.HasPrefix(generatedText, "Error:") {
+        http.Error(w, generatedText, http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    fmt.Fprintf(w, `{"message": %q, "status": "OK"}`, generatedText)
 }
