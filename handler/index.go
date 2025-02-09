@@ -1,11 +1,12 @@
-// api/index.go
-package api
+// handler/index.go
+package handler
 
 import (
 	"context"
 	"net/http"
 	"time"
 
+	api "go.resumes.guide/api"
 	config "go.resumes.guide/api/config"
 	database "go.resumes.guide/api/database"
 )
@@ -21,6 +22,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer mongoClient.Close(ctx)
 
-	h := New(mongoClient)
+	h := api.New(mongoClient)
 	h.ServeHTTP(w, r)
 }
