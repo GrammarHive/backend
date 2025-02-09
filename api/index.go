@@ -1,5 +1,5 @@
 // api/index.go
-package api
+package handler
 
 import (
 	"context"
