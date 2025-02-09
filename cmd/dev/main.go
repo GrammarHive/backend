@@ -9,9 +9,9 @@ import (
 	"syscall"
 	"time"
 
-	handler "go.resumes.guide/api"
-	"go.resumes.guide/api/config"
-	"go.resumes.guide/api/database"
+	handler "go.resumes.guide/components"
+	"go.resumes.guide/components/config"
+	"go.resumes.guide/components/database"
 )
 
 func main() {

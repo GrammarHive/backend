@@ -1,4 +1,4 @@
-// internal/grammar/service.go
+// components/grammar/service.go
 package grammar
 
 import "fmt"

@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	config "go.resumes.guide/api/config"
-	database "go.resumes.guide/api/database"
+	api "go.resumes.guide/components"
+	config "go.resumes.guide/components/config"
+	database "go.resumes.guide/components/database"
 )
 func Handler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
@@ -21,6 +22,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer mongoClient.Close(ctx)
 
-	h := New(mongoClient)
+	h := api.New(mongoClient)
 	h.ServeHTTP(w, r)
 }

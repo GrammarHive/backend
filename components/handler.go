@@ -1,13 +1,13 @@
-// api/handler.go
-package api
+// components/handler.go
+package components
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
 
-	"go.resumes.guide/api/database"
-	"go.resumes.guide/api/grammar"
+	"go.resumes.guide/components/database"
+	"go.resumes.guide/components/grammar"
 )
 
 type APIHandler struct {

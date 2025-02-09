@@ -1,4 +1,4 @@
-// api/generator/validator.go
+// components/generator/validator.go
 
 package grammar
 
