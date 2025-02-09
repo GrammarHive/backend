@@ -2,11 +2,8 @@
 package config
 
 import (
-	"log"
 	"os"
 	"time"
-
-	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -19,21 +16,9 @@ type Config struct {
 
 func Load() *Config {
 
-	err := godotenv.Load()
-    if err != nil {
-        log.Fatalf("err loading: %v", err)
-    }
-
 	return &Config{
-		ServerAddr:    getEnvOr("SERVER_ADDR", ":8080"),
-		MongoURI:      getEnvOr("MONGO_URI", "mongodb://localhost:27017"),
-		Environment:   getEnvOr("ENV", "development"),
+		ServerAddr:    os.Getenv("SERVER_ADDR"),
+		MongoURI:      os.Getenv("MONGO_URI"),
+		Environment:   os.Getenv("ENV"),
 	}
-}
-
-func getEnvOr(key, fallback string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return fallback
 }
