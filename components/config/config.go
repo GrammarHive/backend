@@ -2,9 +2,11 @@
 package config
 
 import (
+	"log"
 	"os"
-	"strconv"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -16,14 +18,15 @@ type Config struct {
 }
 
 func Load() *Config {
-	rateLimit, _ := strconv.ParseFloat(getEnvOr("RATE_LIMIT", "1.0"), 64)
-	cacheMinutes, _ := strconv.Atoi(getEnvOr("CACHE_MINUTES", "5"))
+
+	err := godotenv.Load()
+    if err != nil {
+        log.Fatalf("err loading: %v", err)
+    }
 
 	return &Config{
 		ServerAddr:    getEnvOr("SERVER_ADDR", ":8080"),
 		MongoURI:      getEnvOr("MONGO_URI", "mongodb://localhost:27017"),
-		RateLimit:     rateLimit,
-		CacheLifetime: time.Duration(cacheMinutes) * time.Minute,
 		Environment:   getEnvOr("ENV", "development"),
 	}
 }

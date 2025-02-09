@@ -2,7 +2,10 @@ module go.resumes.guide
 
 go 1.19
 
-require go.mongodb.org/mongo-driver v1.17.2
+require (
+	github.com/joho/godotenv v1.5.1
+	go.mongodb.org/mongo-driver v1.17.2
+)
 
 require (
 	github.com/golang/snappy v0.0.4 // indirect
