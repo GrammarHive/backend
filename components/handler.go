@@ -37,7 +37,7 @@ func (h *APIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	grammarContent, err := h.db.GetGrammar(r.Context(), "resume")
+	grammarContent, err := h.db.GetGrammar(r.Context(), "resume", "admin")
 	if err != nil {
 		http.Error(w, "Failed to fetch grammar", http.StatusInternalServerError)
 		return
