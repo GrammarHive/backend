@@ -18,8 +18,8 @@ The Context Free Grammar API provides a service inspired by the assignment from 
 1. **Clone the repository:**
 
     ```bash
-    git clone https://github.com/yourusername/go.resumes.guide.git
-    cd go.resumes.guide
+    git clone https://github.com/HarryZ10/grammarhive-backend.git
+    cd grammarhive-backend
     ```
 
 2. **Configure the environment:**

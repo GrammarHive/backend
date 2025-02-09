@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"go.resumes.guide/components/database"
-	"go.resumes.guide/components/grammar"
+	"grammarhive-backend/components/database"
+	"grammarhive-backend/components/grammar"
 )
 
 type APIHandler struct {

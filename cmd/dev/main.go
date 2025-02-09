@@ -9,9 +9,9 @@ import (
 	"syscall"
 	"time"
 
-	handler "go.resumes.guide/components"
-	"go.resumes.guide/components/config"
-	"go.resumes.guide/components/database"
+	handler "grammarhive-backend/components"
+	"grammarhive-backend/components/config"
+	"grammarhive-backend/components/database"
 )
 
 func main() {

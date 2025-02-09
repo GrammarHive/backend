@@ -1,4 +1,4 @@
-module go.resumes.guide
+module grammarhive-backend 
 
 go 1.19
 

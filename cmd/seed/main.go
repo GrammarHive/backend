@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"time"
 
-	"go.resumes.guide/components/config"
-	"go.resumes.guide/components/database"
+	"grammarhive-backend/components/config"
+	"grammarhive-backend/components/database"
 )
 
 func main() {

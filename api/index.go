@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	api "go.resumes.guide/components"
-	config "go.resumes.guide/components/config"
-	database "go.resumes.guide/components/database"
+	api "grammarhive-backend/components"
+	config "grammarhive-backend/components/config"
+	database "grammarhive-backend/components/database"
 )
 func Handler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
