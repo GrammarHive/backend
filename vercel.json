@@ -12,9 +12,8 @@
       "dest": "/api"
     }
   ],
-  "env": [
-    {
-      "MONGO_URI": "@MONGO_URI"
-    }
-  ]
+  "env": {
+    "MONGO_URI": "@MONGO_URI"
+  }
+
 }
