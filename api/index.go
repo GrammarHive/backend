@@ -17,7 +17,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	cfg := config.Load()
 	mongoClient, err := database.NewMongoDB(ctx, cfg.MongoURI)
 	if err != nil {
-		http.Error(w, "Database connection failed", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer mongoClient.Close(ctx)
