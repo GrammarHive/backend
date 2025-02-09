@@ -1,4 +1,4 @@
-// internal/database/models.go
+// api/database/models.go
 package database
 
 import (

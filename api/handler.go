@@ -1,28 +1,28 @@
-// internal/handler/handler.go
-package handler
+// api/handler.go
+package api
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
 
-	"go.resumes.guide/internal/database"
-	"go.resumes.guide/internal/grammar"
+	"go.resumes.guide/api/database"
+	"go.resumes.guide/api/grammar"
 )
 
-type Handler struct {
+type APIHandler struct {
 	grammarService *grammar.Service
 	db            *database.MongoDB
 }
 
-func New(db *database.MongoDB) *Handler {
-	return &Handler{
+func New(db *database.MongoDB) *APIHandler {
+	return &APIHandler{
 		grammarService: grammar.NewService(),
-		db:            db,
+		db:             db,
 	}
 }
 
-func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *APIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")

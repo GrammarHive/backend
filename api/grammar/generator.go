@@ -1,4 +1,4 @@
-// internal/generator/generator.go
+// api/generator/generator.go
 
 package grammar
 

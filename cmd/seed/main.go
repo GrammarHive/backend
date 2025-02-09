@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"time"
 
-	"go.resumes.guide/internal/config"
-	"go.resumes.guide/internal/database"
+	"go.resumes.guide/api/config"
+	"go.resumes.guide/api/database"
 )
 
 func main() {
