@@ -2,14 +2,17 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/*.go",
+      "src": "cmd/server/main.go",
       "use": "@vercel/go"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/api"
+      "dest": "/cmd/server/main.go"
     }
-  ]
+  ],
+  "env": {
+    "MONGO_URI": "@mongo_uri"
+  }
 }
