@@ -39,13 +39,13 @@ func (h *APIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	grammarContent, err := h.db.GetGrammar(r.Context(), "resume", "admin")
 	if err != nil {
-		http.Error(w, "Failed to fetch grammar", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	generatedText, err := h.grammarService.Generate(grammarContent)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Generation failed: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Generation failed: %v", err.Error()), http.StatusInternalServerError)
 		return
 	}
 

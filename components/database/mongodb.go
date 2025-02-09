@@ -81,6 +81,6 @@ func (m *MongoDB) GetGrammar(ctx context.Context, name, username string) (string
 	var result struct {
 		Content string `bson:"content"`
 	}
-	err := m.grammars.FindOne(ctx, bson.M{"name": name}).Decode(&result)
+	err := m.grammars.FindOne(ctx, bson.M{"name": name, "username": username}).Decode(&result)
 	return result.Content, err
 }
