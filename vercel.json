@@ -11,5 +11,10 @@
       "src": "/(.*)",
       "dest": "/api"
     }
+  ],
+  "env": [
+    {
+      "MONGO_URI": "@MONGO_URI"
+    }
   ]
 }
