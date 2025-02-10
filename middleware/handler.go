@@ -125,52 +125,48 @@ func (h *APIHandler) handleGenerateList(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
+
 func (h *APIHandler) handleLogin(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
+    if r.Method != http.MethodPost {
+        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+        return
+    }
 
-	var loginRequest struct {
-		Code  string `json:"code"`
-		State string `json:"state"`
-	}
+    // Get token using client credentials
+    tokenEndpoint := fmt.Sprintf("https://%s/oauth/token", h.auth.Domain)
+    payload := map[string]string{
+        "grant_type":    "client_credentials",
+        "client_id":     os.Getenv("AUTH0_CLIENT_ID"),
+        "client_secret": os.Getenv("AUTH0_CLIENT_SECRET"),
+        "audience":      os.Getenv("AUTH0_AUDIENCE"),  // Your API identifier
+    }
 
-	if err := json.NewDecoder(r.Body).Decode(&loginRequest); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
+    payloadBytes, err := json.Marshal(payload)
+    if err != nil {
+        http.Error(w, "Failed to create token request", http.StatusInternalServerError)
+        return
+    }
 
-	// Exchange authorization code for tokens
-	tokenEndpoint := fmt.Sprintf("https://%s/oauth/token", h.auth.Domain)
-	payload := map[string]string{
-		"grant_type":    "authorization_code",
-		"client_id":     os.Getenv("AUTH0_CLIENT_ID"),
-		"client_secret": os.Getenv("AUTH0_CLIENT_SECRET"),
-		"code":          loginRequest.Code,
-		"redirect_uri":  os.Getenv("AUTH0_CALLBACK_URL"),
-	}
+    resp, err := http.Post(tokenEndpoint, "application/json", bytes.NewBuffer(payloadBytes))
+    if err != nil {
+        http.Error(w, "Failed to get token", http.StatusInternalServerError)
+        return
+    }
+    defer resp.Body.Close()
 
-	payloadBytes, _ := json.Marshal(payload)
-	resp, err := http.Post(tokenEndpoint, "application/json", bytes.NewBuffer(payloadBytes))
-	if err != nil {
-		http.Error(w, "Failed to exchange code", http.StatusInternalServerError)
-		return
-	}
-	defer resp.Body.Close()
+    var tokenResponse struct {
+        AccessToken string `json:"access_token"`
+        TokenType  string `json:"token_type"`
+        ExpiresIn  int    `json:"expires_in"`
+    }
 
-	var tokenResponse struct {
-		AccessToken string `json:"access_token"`
-		IdToken    string `json:"id_token"`
-	}
+    if err := json.NewDecoder(resp.Body).Decode(&tokenResponse); err != nil {
+        http.Error(w, "Failed to parse token response", http.StatusInternalServerError)
+        return
+    }
 
-	if err := json.NewDecoder(resp.Body).Decode(&tokenResponse); err != nil {
-		http.Error(w, "Failed to parse token response", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(tokenResponse)
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(tokenResponse)
 }
 
 
