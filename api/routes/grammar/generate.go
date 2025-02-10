@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"grammarhive-backend/api/routes/validation"
-	"grammarhive-backend/api/services"
 	"grammarhive-backend/core/database"
+	"grammarhive-backend/core/services"
 	"net/http"
 )
 
