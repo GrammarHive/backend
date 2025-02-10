@@ -73,11 +73,6 @@ func (auth *Authenticator) Middleware(next http.HandlerFunc) http.HandlerFunc {
 			http.Error(w, "token expired", http.StatusUnauthorized)
 			return
 		}
-
-		if !claims.VerifyNotBefore(time.Now().Unix(), true) {
-			http.Error(w, "token not yet valid", http.StatusUnauthorized)
-			return
-		}
 	
 		next(w, r)
 	}

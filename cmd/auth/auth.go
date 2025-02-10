@@ -69,6 +69,6 @@ func main() {
 	}
 
 	fmt.Println("\nTest curl command:")
-	fmt.Printf("curl -H 'Authorization: Bearer %s' http://backend.grammarhive.org/api/grammar/generate?grammarId=YOUR_GRAMMAR_ID\n", 
+	fmt.Printf("curl -H 'Authorization: Bearer %s' https://backend.grammarhive.org/api/grammar/generate?grammarId=21342\n", 
 		tokenResponse.AccessToken)
 }
