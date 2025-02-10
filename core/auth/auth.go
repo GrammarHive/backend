@@ -2,104 +2,95 @@
 package auth
 
 import (
-	"encoding/json"
-	"errors"
+	"fmt"
 	"net/http"
+	"time"
 
-	jwtmiddleware "github.com/auth0/go-jwt-middleware"
-	"github.com/form3tech-oss/jwt-go"
+	"github.com/MicahParks/keyfunc"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 type Authenticator struct {
 	Domain    string
 	Audience  string
+	jwks     *keyfunc.JWKS
 }
 
-func NewAuth0(domain, audience string) *Authenticator {
+func NewAuth0(domain, audience string) (*Authenticator, error) {
+
+	jwksURL := fmt.Sprintf("https://%s/.well-known/jwks.json", domain)
+
+	options := keyfunc.Options{
+		RefreshInterval: time.Hour * 24,
+		RefreshTimeout: time.Second * 10,
+	}
+
+	jwks, err := keyfunc.Get(jwksURL, options)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize JWKS: %w", err)
+	}
+
 	return &Authenticator{
 		Domain:    domain,
 		Audience:  audience,
-	}
+		jwks:      jwks,
+	}, nil
 }
 
-type CustomClaims struct {
-	Scope string `json:"scope"`
-	jwt.StandardClaims
-}
-
-func (a *Authenticator) Middleware(next http.HandlerFunc) http.HandlerFunc {
-	jwtMiddleware := jwtmiddleware.New(jwtmiddleware.Options{
-		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
-			// Verify 'aud' claim
-			aud := a.Audience
-			// Checks if the token was intended for API
-			checkAud := token.Claims.(jwt.MapClaims).VerifyAudience(aud, false)
-			if !checkAud {
-				return token, errors.New("invalid audience")
-			}
-
-			// Verify 'iss' claim
-			iss := "https://" + a.Domain + "/"
-			checkIss := token.Claims.(jwt.MapClaims).VerifyIssuer(iss, false)
-			if !checkIss {
-				return token, errors.New("invalid issuer")
-			}
-
-			// Gets Auth0's public key (certificate) to verify the token's signature
-			cert, err := a.getPemCert(token)
-			if err != nil {
-				return nil, err
-			}
-
-			result, _ := jwt.ParseRSAPublicKeyFromPEM([]byte(cert))
-			return result, nil
-		},
-		SigningMethod: jwt.SigningMethodRS256,
-	})
-
+func (auth *Authenticator) Middleware(next http.HandlerFunc) http.HandlerFunc {
+	issuer := fmt.Sprintf("https://%s/", auth.Domain)
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := jwtMiddleware.CheckJWT(w, r); err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
+		tokenStr := extractToken(r)
+		if tokenStr == "" {
+			http.Error(w, "missing authorization token", http.StatusUnauthorized)
 			return
 		}
+
+		token, err := jwt.Parse(tokenStr, auth.jwks.Keyfunc, jwt.WithValidMethods([]string{"RS256"}))
+		if err != nil || !token.Valid {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			http.Error(w, "invalid token claims", http.StatusUnauthorized)
+			return
+		}
+
+		if !claims.VerifyAudience(auth.Audience, true) {
+			http.Error(w, "invalid audience", http.StatusUnauthorized)
+			return
+		}
+
+
+		if !claims.VerifyIssuer(issuer, true) {
+			http.Error(w, "invalid issuer", http.StatusUnauthorized)
+			return
+		}
+
+		if !claims.VerifyExpiresAt(time.Now().Unix(), true) {
+			http.Error(w, "token expired", http.StatusUnauthorized)
+			return
+		}
+
+		if !claims.VerifyNotBefore(time.Now().Unix(), true) {
+			http.Error(w, "token not yet valid", http.StatusUnauthorized)
+			return
+		}
+	
 		next(w, r)
 	}
 }
 
-func (a *Authenticator) getPemCert(token *jwt.Token) (string, error) {
-	cert := ""
-	// Fetches JWKS (JSON Web Key Set) from Auth0
-	resp, err := http.Get("https://" + a.Domain + "/.well-known/jwks.json")
-	if err != nil {
-		return cert, err
-	}
-	defer resp.Body.Close()
-
-	var jwks struct {
-		Keys []struct {
-			Kty string   `json:"kty"`
-			Kid string   `json:"kid"`
-			Use string   `json:"use"`
-			N   string   `json:"n"`
-			E   string   `json:"e"`
-			X5c []string `json:"x5c"`
-		} `json:"keys"`
+func extractToken(r *http.Request) string {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		return ""
 	}
 
-	err = json.NewDecoder(resp.Body).Decode(&jwks)
-	if err != nil {
-		return cert, err
+	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+		return authHeader[7:]
 	}
-
-	for k := range jwks.Keys {
-		if token.Header["kid"] == jwks.Keys[k].Kid {
-			cert = "-----BEGIN CERTIFICATE-----\n" + jwks.Keys[k].X5c[0] + "\n-----END CERTIFICATE-----"
-		}
-	}
-
-	if cert == "" {
-		return cert, errors.New("unable to find appropriate key")
-	}
-
-	return cert, nil
+	return ""
 }
