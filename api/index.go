@@ -6,10 +6,11 @@ import (
 	"net/http"
 	"time"
 
-	api "grammarhive-backend/components"
-	config "grammarhive-backend/components/config"
-	database "grammarhive-backend/components/database"
+	config "grammarhive-backend/core/config"
+	database "grammarhive-backend/core/database"
+	server "grammarhive-backend/middleware"
 )
+
 func Handler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -22,6 +23,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer mongoClient.Close(ctx)
 
-	h := api.New(mongoClient)
+	h := server.New(mongoClient)
 	h.ServeHTTP(w, r)
 }

@@ -1,4 +1,4 @@
-// components/generator/generator.go
+// core/generator/generator.go
 
 package grammar
 

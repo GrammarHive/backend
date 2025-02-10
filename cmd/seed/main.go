@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"time"
 
-	"grammarhive-backend/components/config"
-	"grammarhive-backend/components/database"
+	"grammarhive-backend/core/config"
+	"grammarhive-backend/core/database"
 )
 
 func main() {

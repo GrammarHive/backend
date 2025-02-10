@@ -1,4 +1,4 @@
-// components/database/mongodb.go
+// core/database/mongodb.go
 package database
 
 import (
