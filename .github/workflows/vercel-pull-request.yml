@@ -13,9 +13,6 @@ jobs:
         with:
           go-version: '1.21'
 
-      # - name: Test Go code
-      #   run: go test ./...
-
       - uses: amondnet/vercel-action@v25
         id: vercel-deploy
         with:
