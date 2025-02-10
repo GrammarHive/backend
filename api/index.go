@@ -23,10 +23,6 @@ type App struct {
 
 var app = NewApp()
 
-// func init() {
-// 	http.HandleFunc("/", app.Handler)
-// }
-
 func NewApp() *App {
 	cfg := config.Load()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
