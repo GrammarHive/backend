@@ -13,13 +13,16 @@ The Context Free Grammar API provides a service inspired by the assignment from 
 - Supports flexible and customizable grammar configurations.
 - Uses Vercel for seamless deployment and scaling.
 
+## Medium Articles
+- [Part 1: Building An API in Go](https://medium.com/@byharryzhu/build-in-public-designing-an-api-for-grammar-hive-in-go-part-1-ec4cd36159e5)
+
 ## Installation
 
 1. **Clone the repository:**
 
     ```bash
-    git clone https://github.com/HarryZ10/grammarhive-backend.git
-    cd grammarhive-backend
+    git clone https://github.com/GrammarHive/backend.grammarhive.org.git
+    cd backend.grammarhive.org
     ```
 
 2. **Configure the environment:**
@@ -49,7 +52,7 @@ The server will start on the address specified in your .env file (e.g., :8080).
 
 ## API Endpoints
 - Generate Grammar-Based Text
-- Endpoint: `/`
+- Endpoint: `/api/grammar/generate`
 - Method: `GET`
 - Response: JSON containing the generated text based on the grammar.
 
