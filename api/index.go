@@ -26,13 +26,11 @@ func init() {
 	var err error
 	dbService, err = database.NewMongoDB(ctx, cfg.MongoURI)
 	if err != nil {
-		// TODO handle gracefully later
 		panic(err)
 	}
 
 	authenticator, err = middleware.NewAuth0(cfg.Auth0Domain, cfg.Auth0Audience)
 	if err != nil {
-		// TODO handle gracefully later
 		panic(err)
 	}
 }
