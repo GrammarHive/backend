@@ -43,6 +43,10 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	// All the routes are defined here!!
 	router.HandleFunc("/api/login", auth.HandleLogin).Methods("POST")
 
+	router.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
+        w.Write([]byte("Health good"))
+    }).Methods("GET")
+
 	// Secured routes
 	router.HandleFunc("/api/grammar/generate",
 		authenticator.Middleware(grammar.HandleGenerate),
