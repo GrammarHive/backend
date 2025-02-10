@@ -23,9 +23,15 @@ func ValidateGenerateListRequest(r *http.Request) (string, int, error) {
 	}
 
 	countStr := r.URL.Query().Get("count")
-	count, err := strconv.Atoi(countStr)
-	if err != nil || count <= 0 {
-		return "", 0, http.ErrNotSupported
+	count := 10
+
+	if countStr != "" {
+		var err error
+		count, err = strconv.Atoi(countStr)
+		if err != nil || count <= 0 || count >= 10 {
+			return "", 0, http.ErrNotSupported
+		}
 	}
+
 	return grammarID, count, nil
 }
