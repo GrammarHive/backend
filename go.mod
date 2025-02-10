@@ -1,6 +1,6 @@
 module grammarhive-backend
 
-go 1.19
+go 1.21
 
 require (
 	github.com/auth0/go-jwt-middleware v1.0.1
