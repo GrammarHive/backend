@@ -17,6 +17,12 @@ func Init(dbService *database.MongoDB) {
 
 // HandleGenerate handles the generation of a single grammar text
 func HandleGenerate(w http.ResponseWriter, r *http.Request) {
+	// Check if grammarService is initialized
+	if grammarService == nil {
+		http.Error(w, "Grammar service is not initialized", http.StatusInternalServerError)
+		return
+	}
+
 	grammarID, err := validation.ValidateGenerateRequest(r)
 	if err != nil {
 		http.Error(w, "Missing required parameter: grammarId", http.StatusBadRequest)

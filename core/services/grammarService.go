@@ -5,6 +5,7 @@ import (
 	"context"
 	"grammarhive-backend/core/database"
 	"grammarhive-backend/core/grammar"
+	"log"
 )
 
 // Service holds the dependencies required for the grammar logic
@@ -15,6 +16,10 @@ type Service struct {
 
 // NewGrammarService creates a new instance of Service
 func NewGrammarService(db *database.MongoDB) *Service {
+	if db == nil {
+		log.Fatal("Database connection is nil")
+	}
+
 	return &Service{
 		DB:              db,
 		GrammarService:  grammar.NewService(),
