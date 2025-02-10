@@ -9,16 +9,20 @@ import (
 	"net/http"
 )
 
-var grammarService *services.Service
+type GrammarHandler struct {
+	grammarService *services.Service
+}
 
-func InitGrammarService(dbService *database.MongoDB) {
-	grammarService = services.NewGrammarService(dbService)
+func NewGrammarHandler(dbService *database.MongoDB) *GrammarHandler {
+	return &GrammarHandler{
+		grammarService: services.NewGrammarService(dbService),
+	}
 }
 
 // HandleGenerate handles the generation of a single grammar text
-func HandleGenerate(w http.ResponseWriter, r *http.Request) {
+func (h *GrammarHandler) HandleGenerate(w http.ResponseWriter, r *http.Request) {
 	// Check if grammarService is initialized
-	if grammarService == nil {
+	if h.grammarService == nil {
 		http.Error(w, "Grammar service is not initialized", http.StatusInternalServerError)
 		return
 	}
@@ -30,7 +34,7 @@ func HandleGenerate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Utilize the GrammarService to generate the text
-	generatedText, err := grammarService.Generate(grammarID)
+	generatedText, err := h.grammarService.Generate(grammarID)
 	if err != nil {
 		http.Error(w, "Generation failed", http.StatusInternalServerError)
 		return
@@ -46,7 +50,7 @@ func HandleGenerate(w http.ResponseWriter, r *http.Request) {
 }
 
 // HandleGenerateList handles the generation of multiple grammar texts
-func HandleGenerateList(w http.ResponseWriter, r *http.Request) {
+func (h *GrammarHandler) HandleGenerateList(w http.ResponseWriter, r *http.Request) {
 	grammarID, count, err := validation.ValidateGenerateListRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -54,7 +58,7 @@ func HandleGenerateList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Use GrammarService to generate multiple texts
-	messages, err := grammarService.GenerateMultiple(grammarID, count)
+	messages, err := h.grammarService.GenerateMultiple(grammarID, count)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Generation failed: %v", err), http.StatusInternalServerError)
 		return

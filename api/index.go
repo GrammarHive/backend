@@ -5,7 +5,7 @@ import (
 	"context"
 
 	auth "grammarhive-backend/api/routes/auth"
-	grammar "grammarhive-backend/api/routes/grammar"
+	handler "grammarhive-backend/api/routes/grammar"
 	middleware "grammarhive-backend/api/routes/middleware"
 	"grammarhive-backend/core/config"
 	"grammarhive-backend/core/database"
@@ -14,30 +14,44 @@ import (
 
 	"github.com/gorilla/mux"
 )
-var (
+
+type App struct {
 	dbService     *database.MongoDB
 	authenticator *middleware.Authenticator
-)
-func init() {
+	grammar       *handler.GrammarHandler
+}
+
+var app = NewApp()
+
+// func init() {
+// 	http.HandleFunc("/", app.Handler)
+// }
+
+func NewApp() *App {
 	cfg := config.Load()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	var err error
-	dbService, err = database.NewMongoDB(ctx, cfg.MongoURI)
+	dbService, err := database.NewMongoDB(ctx, cfg.MongoURI)
 	if err != nil {
 		panic(err)
 	}
 
-	authenticator, err = middleware.NewAuth0(cfg.Auth0Domain, cfg.Auth0Audience)
+	authenticator, err := middleware.NewAuth0(cfg.Auth0Domain, cfg.Auth0Audience)
 	if err != nil {
 		panic(err)
 	}
 
-	grammar.InitGrammarService(dbService)
+	grammar := handler.NewGrammarHandler(dbService)
+
+	return &App{
+		dbService:     dbService,
+		authenticator: authenticator,
+		grammar:       grammar,
+	}
 }
 
-func Handler(w http.ResponseWriter, r *http.Request) {
+func (app *App) Handler(w http.ResponseWriter, r *http.Request) {
 	router := mux.NewRouter()
 
 	// All the routes are defined here!!
@@ -49,11 +63,11 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	// Secured routes
 	router.HandleFunc("/api/grammar/generate",
-		authenticator.Middleware(grammar.HandleGenerate),
+		app.authenticator.Middleware(app.grammar.HandleGenerate),
 	).Methods("GET")
 
 	router.HandleFunc("/api/grammar/generateList",
-		authenticator.Middleware(grammar.HandleGenerateList),
+		app.authenticator.Middleware(app.grammar.HandleGenerateList),
 	).Methods("GET")
 
 	// CORS Preflight

@@ -8,13 +8,11 @@ import (
 	"log"
 )
 
-// Service holds the dependencies required for the grammar logic
 type Service struct {
 	DB    *database.MongoDB
 	GrammarService  *grammar.Service
 }
 
-// NewGrammarService creates a new instance of Service
 func NewGrammarService(db *database.MongoDB) *Service {
 	if db == nil {
 		log.Fatal("Database connection is nil")
