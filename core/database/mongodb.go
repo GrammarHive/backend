@@ -57,14 +57,15 @@ func (m *MongoDB) Close(ctx context.Context) error {
 	return m.client.Disconnect(ctx)
 }
 
-func (m *MongoDB) StoreGrammar(ctx context.Context, name, username, content string) error {
+func (m *MongoDB) StoreGrammar(ctx context.Context, grammarID, name, username, content string) error {
 
 	_, err := m.grammars.UpdateOne(
 		ctx,
-		bson.M{"name": name, "username": username},
+		bson.M{"grammarID": grammarID},
 		bson.M{
 			"$set": bson.M{
-				"content":   content,
+				"content": content,
+				"name": name,
 				"username":  username,
 				"updatedAt": time.Now(),
 			},
@@ -77,10 +78,10 @@ func (m *MongoDB) StoreGrammar(ctx context.Context, name, username, content stri
 	return err
 }
 
-func (m *MongoDB) GetGrammar(ctx context.Context, name, username string) (string, error) {
+func (m *MongoDB) GetGrammar(ctx context.Context, grammarID string) (string, error) {
 	var result struct {
 		Content string `bson:"content"`
 	}
-	err := m.grammars.FindOne(ctx, bson.M{"name": name, "username": username}).Decode(&result)
+	err := m.grammars.FindOne(ctx, bson.M{"grammarID": grammarID}).Decode(&result)
 	return result.Content, err
 }

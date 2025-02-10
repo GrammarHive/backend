@@ -10,6 +10,8 @@ import (
 	"grammarhive-backend/core/grammar"
 	"net/http"
 	"os"
+
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type APIHandler struct {
@@ -50,81 +52,128 @@ func (h *APIHandler) handleRoot(w http.ResponseWriter, r *http.Request) {
 
 func (h *APIHandler) handleGenerate(w http.ResponseWriter, r *http.Request) {
 	// Get query parameters
-	grammarType := r.URL.Query().Get("type")
-	userID := r.URL.Query().Get("userId")
+	grammarID := r.URL.Query().Get("grammarId")
 
 	// Validate required parameters
-	if grammarType == "" || userID == "" {
-		http.Error(w, "Missing required parameters: type and userId", http.StatusBadRequest)
+	if grammarID == "" {
+		http.Error(w, "Missing required parameter: grammarId", http.StatusBadRequest)
 		return
 	}
 
-	grammarContent, err := h.db.GetGrammar(r.Context(), grammarType, userID)
+	// Get grammar content from MongoDB
+	grammarContent, err := h.db.GetGrammar(r.Context(), grammarID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		if err == mongo.ErrNoDocuments {
+			http.Error(w, "Grammar not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Failed to fetch grammar", http.StatusInternalServerError)
 		return
 	}
 
+	// Generate text using the grammar
 	generatedText, err := h.grammarService.Generate(grammarContent)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Generation failed: %v", err.Error()), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Generation failed: %v", err), http.StatusInternalServerError)
 		return
 	}
 
+	// Return the generated text
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
+	json.NewEncoder(w).Encode(map[string]interface{}{
 		"message": generatedText,
-		"status":  "OK",
+		"status": "success",
+		"grammarId": grammarID,
+	})
+}
+
+func (h *APIHandler) handleGenerateList(w http.ResponseWriter, r *http.Request) {
+	// Get query parameters
+	grammarID := r.URL.Query().Get("grammarId")
+
+	// Validate required parameters
+	if grammarID == "" {
+		http.Error(w, "Missing required parameter: grammarId", http.StatusBadRequest)
+		return
+	}
+
+	// Get grammar content from MongoDB
+	grammarContent, err := h.db.GetGrammar(r.Context(), grammarID)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			http.Error(w, "Grammar not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Failed to fetch grammar", http.StatusInternalServerError)
+		return
+	}
+
+	// Generate multiple texts using the grammar
+	messages, err := h.grammarService.GenerateMultiple(grammarContent, 10)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Generation failed: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Return the generated texts
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"messages": messages,
+		"count": len(messages),
+		"status": "success",
+		"grammarId": grammarID,
 	})
 }
 
 func (h *APIHandler) handleLogin(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodPost {
-        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-        return
-    }
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 
-    var loginRequest struct {
-        Code  string `json:"code"`
-        State string `json:"state"`
-    }
+	var loginRequest struct {
+		Code  string `json:"code"`
+		State string `json:"state"`
+	}
 
-    if err := json.NewDecoder(r.Body).Decode(&loginRequest); err != nil {
-        http.Error(w, "Invalid request body", http.StatusBadRequest)
-        return
-    }
+	if err := json.NewDecoder(r.Body).Decode(&loginRequest); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
 
-    // Exchange authorization code for tokens
-    tokenEndpoint := fmt.Sprintf("https://%s/oauth/token", h.auth.Domain)
-    payload := map[string]string{
-        "grant_type":    "authorization_code",
-        "client_id":     os.Getenv("AUTH0_CLIENT_ID"),
-        "client_secret": os.Getenv("AUTH0_CLIENT_SECRET"),
-        "code":          loginRequest.Code,
-        "redirect_uri":  os.Getenv("AUTH0_CALLBACK_URL"),
-    }
+	// Exchange authorization code for tokens
+	tokenEndpoint := fmt.Sprintf("https://%s/oauth/token", h.auth.Domain)
+	payload := map[string]string{
+		"grant_type":    "authorization_code",
+		"client_id":     os.Getenv("AUTH0_CLIENT_ID"),
+		"client_secret": os.Getenv("AUTH0_CLIENT_SECRET"),
+		"code":          loginRequest.Code,
+		"redirect_uri":  os.Getenv("AUTH0_CALLBACK_URL"),
+	}
 
-    payloadBytes, _ := json.Marshal(payload)
-    resp, err := http.Post(tokenEndpoint, "application/json", bytes.NewBuffer(payloadBytes))
-    if err != nil {
-        http.Error(w, "Failed to exchange code", http.StatusInternalServerError)
-        return
-    }
-    defer resp.Body.Close()
+	payloadBytes, _ := json.Marshal(payload)
+	resp, err := http.Post(tokenEndpoint, "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		http.Error(w, "Failed to exchange code", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
 
-    var tokenResponse struct {
-        AccessToken string `json:"access_token"`
-        IdToken    string `json:"id_token"`
-    }
+	var tokenResponse struct {
+		AccessToken string `json:"access_token"`
+		IdToken    string `json:"id_token"`
+	}
 
-    if err := json.NewDecoder(resp.Body).Decode(&tokenResponse); err != nil {
-        http.Error(w, "Failed to parse token response", http.StatusInternalServerError)
-        return
-    }
+	if err := json.NewDecoder(resp.Body).Decode(&tokenResponse); err != nil {
+		http.Error(w, "Failed to parse token response", http.StatusInternalServerError)
+		return
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(tokenResponse)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(tokenResponse)
 }
+
+
 
 func (h *APIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.setCORSHeaders(w)
@@ -138,9 +187,25 @@ func (h *APIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/":
 		h.handleRoot(w, r)
 	case "/api/login":
-    	h.handleLogin(w, r)
-	case "/api/generate":
-		h.auth.Middleware(h.handleGenerate)(w, r)
+		h.handleLogin(w, r)
+	// case "/api/grammar/upload":
+	// 	if r.Method == http.MethodPost {
+	// 		h.auth.Middleware(h.handleGrammarUpload)(w, r)
+	// 	} else {
+	// 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	// 	}
+	case "/api/grammar/generate":
+		if r.Method == http.MethodGet {
+			if r.URL.Query().Get("list") != "" {
+				h.auth.Middleware(h.handleGenerateList)(w, r)
+			} else {
+				h.auth.Middleware(h.handleGenerate)(w, r)
+			}
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	// case "/api/grammar/generate/list":
+	// 	h.auth.Middleware(h.handleGenerateList)(w, r)
 	default:
 		http.NotFound(w, r)
 	}

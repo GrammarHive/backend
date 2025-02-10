@@ -9,6 +9,7 @@ import (
 
 type Grammar struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty"`
+	GrammarID string            `bson:"grammarID"`
 	Name      string            `bson:"name"`
 	Username  string			`bson:"name"`
 	Content   string            `bson:"content"`
