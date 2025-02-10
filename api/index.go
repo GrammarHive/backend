@@ -33,6 +33,8 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+
+	grammar.InitGrammarService(dbService)
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {

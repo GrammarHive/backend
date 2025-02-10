@@ -11,7 +11,7 @@ import (
 
 var grammarService *services.Service
 
-func Init(dbService *database.MongoDB) {
+func InitGrammarService(dbService *database.MongoDB) {
 	grammarService = services.NewGrammarService(dbService)
 }
 
