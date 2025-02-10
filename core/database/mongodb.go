@@ -36,16 +36,6 @@ func NewMongoDB(ctx context.Context, uri string) (*MongoDB, error) {
 	db := client.Database("resumes-01")
 	grammars := db.Collection("grammars")
 
-	// TODO
-	// indexModel := mongo.IndexModel{
-	// 	Keys: bson.D{
-	// 		{Key: "name", Value: -1},
-	// 		{Key: "username", Value: -1},
-	// 	},
-	// 	Options: options.Index().SetUnique(true),
-	// }
-	// grammars.Indexes().CreateOne(ctx, indexModel)
-
 	return &MongoDB{
 		client:    client,
 		db:        db,

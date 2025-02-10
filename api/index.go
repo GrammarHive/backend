@@ -3,26 +3,60 @@ package handler
 
 import (
 	"context"
+
+	auth "grammarhive-backend/api/routes/auth"
+	grammar "grammarhive-backend/api/routes/grammar"
+	middleware "grammarhive-backend/api/routes/middleware"
+	"grammarhive-backend/core/config"
+	"grammarhive-backend/core/database"
 	"net/http"
 	"time"
 
-	config "grammarhive-backend/core/config"
-	database "grammarhive-backend/core/database"
-	server "grammarhive-backend/middleware"
+	"github.com/gorilla/mux"
 )
-
-func Handler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+var (
+	dbService     *database.MongoDB
+	authenticator *middleware.Authenticator
+)
+func init() {
+	cfg := config.Load()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	cfg := config.Load()
-	mongoClient, err := database.NewMongoDB(ctx, cfg.MongoURI)
+	var err error
+	dbService, err = database.NewMongoDB(ctx, cfg.MongoURI)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		// TODO handle gracefully later
+		panic(err)
+	}
+
+	authenticator, err = middleware.NewAuth0(cfg.Auth0Domain, cfg.Auth0Audience)
+	if err != nil {
+		// TODO handle gracefully later
+		panic(err)
+	}
+}
+
+func Handler(w http.ResponseWriter, r *http.Request) {
+	router := mux.NewRouter()
+
+	// All the routes are defined here!!
+	router.HandleFunc("/api/login", auth.HandleLogin).Methods("POST")
+
+	// Secured routes
+	router.HandleFunc("/api/grammar/generate",
+		authenticator.Middleware(grammar.HandleGenerate),
+	).Methods("GET")
+
+	router.HandleFunc("/api/grammar/generateList",
+		authenticator.Middleware(grammar.HandleGenerateList),
+	).Methods("GET")
+
+	// CORS Preflight
+	if r.Method == "OPTIONS" {
+		middleware.HandleOptions(w, r)
 		return
 	}
-	defer mongoClient.Close(ctx)
 
-	h := server.New(mongoClient)
-	h.ServeHTTP(w, r)
+	router.ServeHTTP(w, r)
 }

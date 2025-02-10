@@ -4,12 +4,12 @@ go 1.21
 
 require (
 	github.com/MicahParks/keyfunc v1.9.0
-	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/golang-jwt/jwt/v4 v4.5.1
+	github.com/gorilla/mux v1.8.1
 	go.mongodb.org/mongo-driver v1.17.2
 )
 
 require (
-	github.com/golang-jwt/jwt/v4 v4.5.1 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect

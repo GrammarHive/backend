@@ -1,5 +1,5 @@
 // core/auth/auth0.go
-package auth
+package handler
 
 import (
 	"fmt"
