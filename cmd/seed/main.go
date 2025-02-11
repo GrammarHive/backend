@@ -35,7 +35,7 @@ func main() {
 		log.Fatalf("Failed to fetch grammar: %v", err)
 	}
 
-	if err := db.StoreGrammar(ctx, "21342", "resume", "admin", grammarContent); err != nil {
+	if err := db.StoreGrammar(ctx, "21342", "resume", "admin", grammarContent, 1); err != nil {
 		log.Fatalf("Failed to store grammar: %v", err)
 	}
 

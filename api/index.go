@@ -3,15 +3,18 @@ package handler
 
 import (
 	"context"
+	"fmt"
 
 	auth "grammarhive-backend/api/routes/auth"
 	handler "grammarhive-backend/api/routes/grammar"
 	middleware "grammarhive-backend/api/routes/middleware"
 	"grammarhive-backend/core/config"
 	"grammarhive-backend/core/database"
+
 	"net/http"
 	"time"
 
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/gorilla/mux"
 )
 
@@ -48,6 +51,10 @@ func NewApp() *App {
 }
 
 func (app *App) Handler(w http.ResponseWriter, r *http.Request) {
+	log.Info(fmt.Sprintf(
+		"%s: method=%s, uri=%s", r.Proto, r.Method, r.RequestURI),
+	)
+
 	router := mux.NewRouter()
 
 	// All the routes are defined here!!

@@ -105,7 +105,7 @@ func (rtg *RandomTextGenerator) Run() string {
 	if len(rtg.GrammarRules) == 0 {
 		return "Error: Grammar rules not properly initialized"
 	}
-	
+
 	depthCount := 0
 	result := rtg.expandSymbol("<" + rtg.StartSymbol + ">", &depthCount)
 	return strings.TrimSpace(result)
