@@ -10,7 +10,7 @@ import (
 )
 
 type GrammarHandler struct {
-	grammarService *services.Service
+	grammarService *services.GrammarGenService
 }
 
 func NewGrammarHandler(dbService *database.MongoDB) *GrammarHandler {

@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	auth "grammarhive-backend/api/routes/auth"
-	handler "grammarhive-backend/api/routes/grammar"
+	handler "grammarhive-backend/api/routes/handler"
 	middleware "grammarhive-backend/api/routes/middleware"
 	"grammarhive-backend/core/config"
 	"grammarhive-backend/core/database"
@@ -22,6 +22,7 @@ type App struct {
 	dbService     *database.MongoDB
 	authenticator *middleware.Authenticator
 	grammar       *handler.GrammarHandler
+	profile      *handler.ProfileHandler
 }
 
 var app = NewApp()
@@ -42,11 +43,13 @@ func NewApp() *App {
 	}
 
 	grammar := handler.NewGrammarHandler(dbService)
+	profile := handler.NewProfileHandler(dbService)
 
 	return &App{
 		dbService:     dbService,
 		authenticator: authenticator,
 		grammar:       grammar,
+		profile:       profile,
 	}
 }
 
@@ -71,6 +74,14 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	router.HandleFunc("/api/grammar/generateList",
 		app.authenticator.Middleware(app.grammar.HandleGenerateList),
+	).Methods("GET")
+
+	router.HandleFunc("/api/user/profile/grammar/upload",
+		app.authenticator.Middleware(app.profile.HandleUpload),
+	).Methods("POST")
+
+	router.HandleFunc("/api/user/profile/grammar",
+		app.authenticator.Middleware(app.profile.HandleGetGrammarByUsername),
 	).Methods("GET")
 
 	// CORS Preflight

@@ -10,11 +10,11 @@ type Service struct {
 	generator *RandomTextGenerator
 }
 
-func NewService() *Service {
+func NewGrammarGenService() *Service {
 	return &Service{}
 }
 
-func (s *Service) Generate(grammarContent string) (string, error) {
+func (s *Service) ExecuteGrammarGen(grammarContent string) (string, error) {
 	generator, err := NewRandomTextGenerator(grammarContent)
 	if err != nil {
 		return "", fmt.Errorf("failed to create generator: %w", err)

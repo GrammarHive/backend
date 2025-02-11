@@ -83,3 +83,24 @@ func (m *MongoDB) GetGrammar(ctx context.Context, grammarID string) (string, err
 	err := m.grammars.FindOne(ctx, bson.M{"grammarID": grammarID}).Decode(&result)
 	return result.Content, err
 }
+
+func (m *MongoDB) GetGrammarsByUsername(username string) ([]Grammar, error) {
+	var results []Grammar
+	cursor, err := m.grammars.Find(context.Background(), bson.M{"username": username})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	for cursor.Next(context.Background()) {
+		var grammar Grammar
+		if err := cursor.Decode(&grammar); err != nil {
+			return nil, err
+		}
+		results = append(results, grammar)
+	}
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+	return results, nil
+}
