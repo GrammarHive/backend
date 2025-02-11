@@ -50,34 +50,36 @@ func NewApp() *App {
 	}
 }
 
-func (app *App) Handler(w http.ResponseWriter, r *http.Request) {
-	log.Info(fmt.Sprintf(
-		"%s: method=%s, uri=%s", r.Proto, r.Method, r.RequestURI),
-	)
+func Handler(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log.Info(fmt.Sprintf(
+			"%s: method=%s, uri=%s", r.Proto, r.Method, r.RequestURI),
+		)
 
-	router := mux.NewRouter()
+		router := mux.NewRouter()
 
-	// All the routes are defined here!!
-	router.HandleFunc("/api/login", auth.HandleLogin).Methods("POST")
+		// All the routes are defined here!!
+		router.HandleFunc("/api/login", auth.HandleLogin).Methods("POST")
 
-	router.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
-        w.Write([]byte("Health good"))
-    }).Methods("GET")
+		router.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("Health good"))
+		}).Methods("GET")
 
-	// Secured routes
-	router.HandleFunc("/api/grammar/generate",
-		app.authenticator.Middleware(app.grammar.HandleGenerate),
-	).Methods("GET")
+		// Secured routes
+		router.HandleFunc("/api/grammar/generate",
+			app.authenticator.Middleware(app.grammar.HandleGenerate),
+		).Methods("GET")
 
-	router.HandleFunc("/api/grammar/generateList",
-		app.authenticator.Middleware(app.grammar.HandleGenerateList),
-	).Methods("GET")
+		router.HandleFunc("/api/grammar/generateList",
+			app.authenticator.Middleware(app.grammar.HandleGenerateList),
+		).Methods("GET")
 
-	// CORS Preflight
-	if r.Method == "OPTIONS" {
-		middleware.HandleOptions(w, r)
-		return
+		// CORS Preflight
+		if r.Method == "OPTIONS" {
+			middleware.HandleOptions(w, r)
+			return
+		}
+
+		router.ServeHTTP(w, r)
 	}
-
-	router.ServeHTTP(w, r)
 }

@@ -17,7 +17,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:         ":" + port,
-		Handler:      http.HandlerFunc(app.Handler),
+		Handler:      http.HandlerFunc(handler.Handler(app)),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
